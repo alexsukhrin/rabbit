@@ -8,7 +8,7 @@ type PublishParams struct {
 	Params               *amqp.Publishing
 }
 
-type Client interface {
+type Publisher interface {
 	Publish(*PublishParams) error
 }
 
