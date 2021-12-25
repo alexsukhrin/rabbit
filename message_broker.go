@@ -14,7 +14,7 @@ type ConsumeParams struct {
 type PublishParams struct {
 	Exchange, Routing    string
 	Mandatory, Immediate bool
-	Params               *amqp.Publishing
+	Body []byte
 }
 
 type MessageBroker interface {
@@ -62,11 +62,15 @@ func (r Rabbit) Consume(p *ConsumeParams) (<-chan amqp.Delivery, error) {
 }
 
 func (r Rabbit) Publish(p *PublishParams) error {
+	params := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(p.Body),
+	}
 	return r.GetChannel.Publish(
 		p.Exchange,
 		p.Routing,
 		p.Mandatory,
 		p.Immediate,
-		*p.Params,
+		params,
 	)
 }
