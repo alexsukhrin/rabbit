@@ -18,7 +18,7 @@ type PublishParams struct {
 }
 
 type MessageBroker interface {
-	Consume(*ConsumeParams)
+	Consume(*ConsumeParams) (<-chan amqp.Delivery, error)
 	Publish(*PublishParams) error
 	Connect(rabbitUrl string) *amqp.Connection
 	Channel(conn *amqp.Connection) *amqp.Channel
