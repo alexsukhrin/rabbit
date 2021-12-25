@@ -25,12 +25,12 @@ type MessageBroker interface {
 }
 
 type Rabbit struct {
-	getConnection *amqp.Connection
-	getChannel *amqp.Channel
+	GetConnection *amqp.Connection
+	GetChannel *amqp.Channel
 }
 
 func (r Rabbit) Channel(conn *amqp.Connection) *amqp.Channel {
-	ch, err := r.getConnection.Channel()
+	ch, err := r.GetConnection.Channel()
 
 	if err != nil {
 		log.Fatal("Failed to open a channel")
@@ -50,7 +50,7 @@ func (r Rabbit) Connect(rabbitUrl string) *amqp.Connection {
 }
 
 func (r Rabbit) Consume(p *ConsumeParams) (<-chan amqp.Delivery, error) {
-	return r.getChannel.Consume(
+	return r.GetChannel.Consume(
 		p.Queue,
 		p.ConsumerName,
 		p.AutoAck,
@@ -62,7 +62,7 @@ func (r Rabbit) Consume(p *ConsumeParams) (<-chan amqp.Delivery, error) {
 }
 
 func (r Rabbit) Publish(p *PublishParams) error {
-	return r.getChannel.Publish(
+	return r.GetChannel.Publish(
 		p.Exchange,
 		p.Routing,
 		p.Mandatory,
