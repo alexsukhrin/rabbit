@@ -11,3 +11,8 @@ func BuilderRabbitUrl(config RabbitConfig) string {
 		config.VHost,
 	)
 }
+
+func BuildRabbitUrl(host, port, vhost, user, password string) string {
+	rabbitConfig := NewRabbitConfig(user, password, host, vhost, port)
+	return BuilderRabbitUrl(*rabbitConfig)
+}
