@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"fmt"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -23,11 +24,23 @@ type MessageBroker interface {
 }
 
 type Rabbit struct {
-	Channel *amqp.Channel
+	User, Password, Host, VHost, Port, ConnectionUrl string
+	Connection                                       *amqp.Connection
+	Channel                                          *amqp.Channel
 }
 
-func GetConnect(connUrl string) *amqp.Connection {
-	conn, err := amqp.Dial(connUrl)
+func (rabbit *Rabbit) BuilderConnectionUrl() string {
+	return fmt.Sprintf("amqp://%s:%s@%s:%s/%s",
+		rabbit.User,
+		rabbit.Password,
+		rabbit.Host,
+		rabbit.Port,
+		rabbit.VHost,
+	)
+}
+
+func (rabbit *Rabbit) GetConnect() *amqp.Connection {
+	conn, err := amqp.Dial(rabbit.ConnectionUrl)
 
 	if err != nil {
 		log.Fatal("Failed to connect to RabbitMQ")
@@ -36,8 +49,8 @@ func GetConnect(connUrl string) *amqp.Connection {
 	return conn
 }
 
-func GetChannel(conn *amqp.Connection) *amqp.Channel {
-	ch, err := conn.Channel()
+func (rabbit *Rabbit) GetChannel() *amqp.Channel {
+	ch, err := rabbit.Connection.Channel()
 
 	if err != nil {
 		log.Fatal("Failed to open a channel")
@@ -46,8 +59,8 @@ func GetChannel(conn *amqp.Connection) *amqp.Channel {
 	return ch
 }
 
-func (r *Rabbit) Consume(p *ConsumeParams) <-chan amqp.Delivery {
-	events, err := r.Channel.Consume(
+func (rabbit *Rabbit) Consume(p *ConsumeParams) <-chan amqp.Delivery {
+	events, err := rabbit.Channel.Consume(
 		p.Queue,
 		p.ConsumerName,
 		p.AutoAck,
@@ -64,12 +77,12 @@ func (r *Rabbit) Consume(p *ConsumeParams) <-chan amqp.Delivery {
 	return events
 }
 
-func (r *Rabbit) Publish(p *PublishParams) error {
+func (rabbit *Rabbit) Publish(p *PublishParams) error {
 	params := amqp.Publishing{
 		ContentType: "text/plain",
 		Body:        []byte(p.Body),
 	}
-	return r.Channel.Publish(
+	return rabbit.Channel.Publish(
 		p.Exchange,
 		p.Routing,
 		p.Mandatory,
