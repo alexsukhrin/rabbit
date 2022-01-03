@@ -26,7 +26,7 @@ type MessageBroker interface {
 type Rabbit struct {
 	User, Password, Host, VHost, Port, ConnectionUrl string
 	Connection                                       *amqp.Connection
-	Channel                                          *amqp.Channel
+	Chan                                             *amqp.Channel
 }
 
 func (rabbit *Rabbit) BuilderConnectionUrl() string {
@@ -39,7 +39,7 @@ func (rabbit *Rabbit) BuilderConnectionUrl() string {
 	)
 }
 
-func (rabbit *Rabbit) GetConnect() *amqp.Connection {
+func (rabbit *Rabbit) Connect() *amqp.Connection {
 	conn, err := amqp.Dial(rabbit.ConnectionUrl)
 
 	if err != nil {
@@ -49,7 +49,7 @@ func (rabbit *Rabbit) GetConnect() *amqp.Connection {
 	return conn
 }
 
-func (rabbit *Rabbit) GetChannel() *amqp.Channel {
+func (rabbit *Rabbit) Channel() *amqp.Channel {
 	ch, err := rabbit.Connection.Channel()
 
 	if err != nil {
@@ -60,7 +60,7 @@ func (rabbit *Rabbit) GetChannel() *amqp.Channel {
 }
 
 func (rabbit *Rabbit) Consume(p *ConsumeParams) <-chan amqp.Delivery {
-	events, err := rabbit.Channel.Consume(
+	events, err := rabbit.Chan.Consume(
 		p.Queue,
 		p.ConsumerName,
 		p.AutoAck,
@@ -82,7 +82,7 @@ func (rabbit *Rabbit) Publish(p *PublishParams) error {
 		ContentType: "text/plain",
 		Body:        []byte(p.Body),
 	}
-	return rabbit.Channel.Publish(
+	return rabbit.Chan.Publish(
 		p.Exchange,
 		p.Routing,
 		p.Mandatory,
